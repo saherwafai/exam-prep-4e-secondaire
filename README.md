@@ -28,7 +28,14 @@ Exam Prep 4e Secondaire/
 |---|---|---|
 | math/quizzes/pratique1-quiz.html | sn4-pratique1-examen-eleve-1.pdf | In progress |
 
+## Live Quizzes
+
+| Quiz | Subject | Link |
+|---|---|---|
+| Pratique 1 | Math SN 4e sec | [Jouer →](https://saherwafai.github.io/exam-prep-4e-secondaire/math/pratique1-quiz.html) |
+
 ## Rules
 - One source PDF per exam — never duplicate
-- All generated files go in the appropriate quizzes/ folder
-- Hosted on GitHub Pages: https://saherwafai.github.io/exam-prep-4e-secondaire/
+- All quiz HTML files go in docs/math/ or docs/science/
+- GitHub Pages serves from the docs/ folder
+- Hosted at: https://saherwafai.github.io/exam-prep-4e-secondaire/

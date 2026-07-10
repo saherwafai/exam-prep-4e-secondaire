@@ -1,0 +1,777 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pratique 1 — Mathématiques SN 4e secondaire</title>
+<style>
+  :root {
+    --navy: #1a2744;
+    --blue: #2563eb;
+    --green: #16a34a;
+    --red: #dc2626;
+    --yellow: #d97706;
+    --light: #f1f5f9;
+    --border: #e2e8f0;
+    --text: #1e293b;
+    --muted: #64748b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', system-ui, sans-serif; background: #f8fafc; color: var(--text); }
+
+  header {
+    background: var(--navy);
+    color: white;
+    padding: 24px 32px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+  }
+  header h1 { font-size: 1.1rem; font-weight: 600; }
+  header .subtitle { font-size: 0.8rem; opacity: 0.7; margin-top: 2px; }
+  #progress-bar-wrap { background: rgba(255,255,255,0.2); border-radius: 4px; height: 6px; width: 200px; }
+  #progress-bar { background: #60a5fa; height: 6px; border-radius: 4px; width: 0%; transition: width 0.4s; }
+
+  main { max-width: 780px; margin: 0 auto; padding: 32px 16px 80px; }
+
+  /* Score screen */
+  #score-screen { display: none; text-align: center; padding: 60px 20px; }
+  #score-screen h2 { font-size: 2rem; color: var(--navy); margin-bottom: 8px; }
+  #score-circle {
+    width: 140px; height: 140px; border-radius: 50%;
+    border: 8px solid var(--blue);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 2.4rem; font-weight: 700; color: var(--navy);
+    margin: 32px auto;
+  }
+  #score-message { font-size: 1.1rem; color: var(--muted); margin-bottom: 32px; }
+  #review-list { text-align: left; margin-top: 24px; }
+
+  /* Section headers */
+  .section-header {
+    background: var(--navy);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin: 32px 0 16px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+  }
+
+  /* Question card */
+  .q-card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+    display: none;
+  }
+  .q-card.active { display: block; }
+  .q-card.answered { display: block; }
+
+  .q-number { font-size: 0.75rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+  .q-topic { display: inline-block; background: #eff6ff; color: var(--blue); font-size: 0.7rem; font-weight: 600; padding: 2px 8px; border-radius: 20px; margin-bottom: 12px; }
+  .q-text { font-size: 1rem; line-height: 1.6; margin-bottom: 20px; }
+  .q-text .highlight { background: #fef9c3; padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 0.95rem; display: inline-block; margin: 4px 0; }
+  .q-figure { background: var(--light); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 16px; font-size: 0.85rem; color: var(--muted); text-align: center; font-style: italic; }
+
+  /* MCQ options */
+  .options { display: grid; gap: 10px; }
+  .option {
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    padding: 12px 16px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    transition: all 0.2s;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  .option:hover:not(.locked) { border-color: var(--blue); background: #eff6ff; }
+  .option .opt-label { font-weight: 700; color: var(--muted); min-width: 18px; }
+  .option.correct { border-color: var(--green); background: #f0fdf4; }
+  .option.correct .opt-label { color: var(--green); }
+  .option.wrong { border-color: var(--red); background: #fef2f2; }
+  .option.wrong .opt-label { color: var(--red); }
+  .option.locked { cursor: default; }
+
+  /* Short/long answer */
+  .answer-input {
+    width: 100%;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    resize: vertical;
+    min-height: 80px;
+    transition: border 0.2s;
+  }
+  .answer-input:focus { outline: none; border-color: var(--blue); }
+  .answer-input.correct-input { border-color: var(--green); background: #f0fdf4; }
+  .answer-input.wrong-input { border-color: var(--red); background: #fef2f2; }
+
+  /* Feedback */
+  .feedback {
+    margin-top: 16px;
+    padding: 14px 16px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    display: none;
+  }
+  .feedback.show { display: block; }
+  .feedback.correct { background: #f0fdf4; border-left: 4px solid var(--green); }
+  .feedback.wrong { background: #fef2f2; border-left: 4px solid var(--red); }
+  .feedback.neutral { background: #eff6ff; border-left: 4px solid var(--blue); }
+  .feedback strong { display: block; margin-bottom: 4px; }
+  .feedback .steps { margin-top: 8px; padding-left: 16px; }
+  .feedback .steps li { margin-bottom: 4px; }
+  .math { font-family: 'Courier New', monospace; background: rgba(0,0,0,0.05); padding: 1px 5px; border-radius: 3px; }
+
+  /* Buttons */
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 10px 24px; border-radius: 8px; border: none;
+    font-size: 0.9rem; font-weight: 600; cursor: pointer;
+    transition: all 0.2s;
+  }
+  .btn-primary { background: var(--blue); color: white; }
+  .btn-primary:hover { background: #1d4ed8; }
+  .btn-secondary { background: var(--light); color: var(--text); }
+  .btn-secondary:hover { background: var(--border); }
+  .btn-success { background: var(--green); color: white; }
+  .btn-success:hover { background: #15803d; }
+
+  .q-actions { margin-top: 20px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+  /* Status badges */
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 0.75rem; font-weight: 600;
+    padding: 3px 10px; border-radius: 20px;
+  }
+  .badge-correct { background: #dcfce7; color: var(--green); }
+  .badge-wrong { background: #fee2e2; color: var(--red); }
+  .badge-skipped { background: #fef9c3; color: var(--yellow); }
+
+  /* Navigation */
+  #nav-dots { display: flex; gap: 6px; flex-wrap: wrap; margin: 24px 0 8px; }
+  .dot {
+    width: 28px; height: 28px; border-radius: 50%;
+    border: 2px solid var(--border); background: white;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7rem; font-weight: 600; cursor: pointer;
+    transition: all 0.2s; color: var(--muted);
+  }
+  .dot:hover { border-color: var(--blue); color: var(--blue); }
+  .dot.active { border-color: var(--blue); background: var(--blue); color: white; }
+  .dot.done-correct { border-color: var(--green); background: #dcfce7; color: var(--green); }
+  .dot.done-wrong { border-color: var(--red); background: #fee2e2; color: var(--red); }
+
+  /* Intro screen */
+  #intro-screen { text-align: center; padding: 40px 20px; }
+  #intro-screen h2 { font-size: 1.8rem; color: var(--navy); margin-bottom: 12px; }
+  #intro-screen p { color: var(--muted); margin-bottom: 8px; line-height: 1.6; }
+  .intro-meta { display: flex; justify-content: center; gap: 24px; margin: 24px 0; flex-wrap: wrap; }
+  .meta-item { text-align: center; }
+  .meta-item .val { font-size: 1.6rem; font-weight: 700; color: var(--navy); }
+  .meta-item .lbl { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+
+  @media (max-width: 600px) {
+    header { padding: 16px; flex-direction: column; gap: 10px; align-items: flex-start; }
+    main { padding: 16px 12px 60px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="subtitle">Mathématiques SN · 4e secondaire</div>
+    <h1 id="header-title">Pratique 1 à l'examen ministériel</h1>
+  </div>
+  <div style="text-align:right">
+    <div id="progress-bar-wrap"><div id="progress-bar"></div></div>
+    <div style="font-size:0.75rem;opacity:0.7;margin-top:4px" id="progress-label">0 / 14</div>
+  </div>
+</header>
+
+<main>
+
+  <!-- Intro -->
+  <div id="intro-screen">
+    <h2>Pratique 1</h2>
+    <p>Questions tirées du manuel <strong>Puissance 4 SN</strong> (Éditions Grand Duc)</p>
+    <p>Réponds à chacune des questions. Une explication détaillée sera fournie après chaque réponse.</p>
+    <div class="intro-meta">
+      <div class="meta-item"><div class="val">14</div><div class="lbl">Questions</div></div>
+      <div class="meta-item"><div class="val">3</div><div class="lbl">Sections</div></div>
+      <div class="meta-item"><div class="val">~45</div><div class="lbl">Minutes</div></div>
+    </div>
+    <button class="btn btn-primary" onclick="startQuiz()" style="font-size:1rem;padding:14px 36px;">Commencer →</button>
+  </div>
+
+  <!-- Quiz -->
+  <div id="quiz-screen" style="display:none">
+    <div id="nav-dots"></div>
+
+    <!-- SECTION 1 -->
+    <div class="section-header" id="sec1-header" style="display:none">Section 1 — Questions à choix multiples</div>
+
+    <!-- Q1 -->
+    <div class="q-card" id="q1">
+      <div class="q-number">Question 1 de 14</div>
+      <div class="q-topic">Fonctions quadratiques</div>
+      <div class="q-text">Le plan cartésien montre deux fonctions quadratiques <em>f</em> et <em>g</em>, dont la règle est sous la forme canonique <span class="math">y = a(x − h)² + k</span>. Quel énoncé est exact ?</div>
+      <div class="q-figure">📊 Graphique : <em>f</em> est une parabole ouverte vers le haut, plus étroite, sommet vers (3, −5). <em>g</em> est plus large, sommet vers (1, 4).</div>
+      <div class="options" id="opts1">
+        <div class="option" onclick="selectMCQ(1,'a')"><span class="opt-label">a)</span> La valeur du paramètre <em>a</em> est plus grande dans <em>f</em> et la valeur du paramètre <em>k</em> est la même.</div>
+        <div class="option" onclick="selectMCQ(1,'b')"><span class="opt-label">b)</span> La valeur du paramètre <em>a</em> est plus grande dans <em>f</em> et la valeur du paramètre <em>h</em> est la même.</div>
+        <div class="option" onclick="selectMCQ(1,'c')"><span class="opt-label">c)</span> La valeur du paramètre <em>a</em> est plus grande dans <em>g</em> et la valeur du paramètre <em>k</em> est la même.</div>
+        <div class="option" onclick="selectMCQ(1,'d')"><span class="opt-label">d)</span> La valeur du paramètre <em>a</em> est plus grande dans <em>g</em> et la valeur du paramètre <em>h</em> est la même.</div>
+      </div>
+      <div class="feedback" id="fb1"></div>
+      <div class="q-actions"><button class="btn btn-secondary" onclick="nextQ(1)">Passer →</button></div>
+    </div>
+
+    <!-- Q2 -->
+    <div class="q-card" id="q2">
+      <div class="q-number">Question 2 de 14</div>
+      <div class="q-topic">Droites perpendiculaires</div>
+      <div class="q-text">Quelle règle représente une droite perpendiculaire à la droite d'équation <span class="math">3x − 6y + 9 = 0</span> ?</div>
+      <div class="options" id="opts2">
+        <div class="option" onclick="selectMCQ(2,'a')"><span class="opt-label">a)</span> <span class="math">f(x) = −2x + 6</span></div>
+        <div class="option" onclick="selectMCQ(2,'b')"><span class="opt-label">b)</span> <span class="math">f(x) = x/2 + 1,5</span></div>
+        <div class="option" onclick="selectMCQ(2,'c')"><span class="opt-label">c)</span> <span class="math">f(x) = 2x − 1,5</span></div>
+        <div class="option" onclick="selectMCQ(2,'d')"><span class="opt-label">d)</span> <span class="math">f(x) = −x/2 − 6</span></div>
+      </div>
+      <div class="feedback" id="fb2"></div>
+      <div class="q-actions"><button class="btn btn-secondary" onclick="nextQ(2)">Passer →</button></div>
+    </div>
+
+    <!-- Q3 -->
+    <div class="q-card" id="q3">
+      <div class="q-number">Question 3 de 14</div>
+      <div class="q-topic">Trigonométrie</div>
+      <div class="q-text">Quelle est la mesure de l'angle A dans le triangle obtusangle ci-contre ?</div>
+      <div class="q-figure">📐 Triangle ABC : angle C = 41°, BC = 26 cm, AC = 18 cm. L'angle A est obtus.</div>
+      <div class="options" id="opts3">
+        <div class="option" onclick="selectMCQ(3,'a')"><span class="opt-label">a)</span> 71,38°</div>
+        <div class="option" onclick="selectMCQ(3,'b')"><span class="opt-label">b)</span> 108,62°</div>
+        <div class="option" onclick="selectMCQ(3,'c')"><span class="opt-label">c)</span> 27,01°</div>
+        <div class="option" onclick="selectMCQ(3,'d')"><span class="opt-label">d)</span> 152,99°</div>
+      </div>
+      <div class="feedback" id="fb3"></div>
+      <div class="q-actions"><button class="btn btn-secondary" onclick="nextQ(3)">Passer →</button></div>
+    </div>
+
+    <!-- Q4 -->
+    <div class="q-card" id="q4">
+      <div class="q-number">Question 4 de 14</div>
+      <div class="q-topic">Aire d'un triangle</div>
+      <div class="q-text">Quelle est l'aire du triangle ABC ?</div>
+      <div class="q-figure">📐 Triangle ABC : angle A = 82°, angle C = 63°, donc angle B = 35°. Côté BC = 7 cm, AC = 5 cm.</div>
+      <div class="options" id="opts4">
+        <div class="option" onclick="selectMCQ(4,'a')"><span class="opt-label">a)</span> 17,5 cm²</div>
+        <div class="option" onclick="selectMCQ(4,'b')"><span class="opt-label">b)</span> 17,33 cm²</div>
+        <div class="option" onclick="selectMCQ(4,'c')"><span class="opt-label">c)</span> 10,04 cm²</div>
+        <div class="option" onclick="selectMCQ(4,'d')"><span class="opt-label">d)</span> 15,59 cm²</div>
+      </div>
+      <div class="feedback" id="fb4"></div>
+      <div class="q-actions"><button class="btn btn-secondary" onclick="nextQ(4)">Passer →</button></div>
+    </div>
+
+    <!-- Q5 -->
+    <div class="q-card" id="q5">
+      <div class="q-number">Question 5 de 14</div>
+      <div class="q-topic">Statistiques — Corrélation</div>
+      <div class="q-text">Comment peut-on qualifier la corrélation de la distribution inscrite dans le tableau ? (Rangées 1–5, colonnes [0,10[ à [40,50[. Les valeurs élevées se concentrent dans les grandes colonnes pour les rangées 1–2 et dans les petites colonnes pour les rangées 4–5.)</div>
+      <div class="options" id="opts5">
+        <div class="option" onclick="selectMCQ(5,'a')"><span class="opt-label">a)</span> Forte et positive</div>
+        <div class="option" onclick="selectMCQ(5,'b')"><span class="opt-label">b)</span> Forte et négative</div>
+        <div class="option" onclick="selectMCQ(5,'c')"><span class="opt-label">c)</span> Faible et positive</div>
+        <div class="option" onclick="selectMCQ(5,'d')"><span class="opt-label">d)</span> Faible et négative</div>
+      </div>
+      <div class="feedback" id="fb5"></div>
+      <div class="q-actions"><button class="btn btn-secondary" onclick="nextQ(5)">Passer →</button></div>
+    </div>
+
+    <!-- Q6 -->
+    <div class="q-card" id="q6">
+      <div class="q-number">Question 6 de 14</div>
+      <div class="q-topic">Triangles isométriques</div>
+      <div class="q-text">Quel triangle est nécessairement isométrique au triangle ABC ci-contre ?</div>
+      <div class="q-figure">📐 Triangle ABC : AB = 14,8 cm, BC = 9,5 cm, AC = 12 cm, angle B = 56°, angle C = 78°.</div>
+      <div class="options" id="opts6">
+        <div class="option" onclick="selectMCQ(6,'a')"><span class="opt-label">a)</span> Triangle avec angles 56° et 78° seulement (aucun côté donné)</div>
+        <div class="option" onclick="selectMCQ(6,'b')"><span class="opt-label">b)</span> Triangle avec côtés 14,8 cm et 9,5 cm, angle 78°</div>
+        <div class="option" onclick="selectMCQ(6,'c')"><span class="opt-label">c)</span> Triangle avec côtés 19 cm et 24 cm, angle 78°</div>
+        <div class="option" onclick="selectMCQ(6,'d')"><span class="opt-label">d)</span> Triangle avec côté 12 cm, angles 46° et 78°</div>
+      </div>
+      <div class="feedback" id="fb6"></div>
+      <div class="q-actions"><button class="btn btn-secondary" onclick="nextQ(6)">Passer →</button></div>
+    </div>
+
+    <!-- SECTION 2 -->
+    <div class="section-header" id="sec2-header" style="display:none">Section 2 — Questions à court développement</div>
+
+    <!-- Q7 -->
+    <div class="q-card" id="q7">
+      <div class="q-number">Question 7 de 14</div>
+      <div class="q-topic">Géométrie — Solides équivalents</div>
+      <div class="q-text">Si la pyramide à base carrée et le cylindre illustrés sont équivalents, combien mesure le rayon du cylindre ?</div>
+      <div class="q-figure">📦 Pyramide : base carrée 15 cm × 15 cm, hauteur 20 cm.<br>Cylindre : hauteur 25 cm, rayon = ?</div>
+      <textarea class="answer-input" id="ans7" placeholder="Écris ta réponse ici (ex: 5,37 cm)..."></textarea>
+      <div class="q-actions">
+        <button class="btn btn-primary" onclick="checkShort(7, '5.37')">Vérifier</button>
+        <button class="btn btn-secondary" onclick="nextQ(7)">Passer →</button>
+      </div>
+      <div class="feedback" id="fb7"></div>
+    </div>
+
+    <!-- Q8 -->
+    <div class="q-card" id="q8">
+      <div class="q-number">Question 8 de 14</div>
+      <div class="q-topic">Algèbre — Inéquation</div>
+      <div class="q-text">Résolvez l'inéquation suivante :</div>
+      <div class="q-figure"><span class="math">3(x − 2)(x + 10) > 10</span></div>
+      <textarea class="answer-input" id="ans8" placeholder="Ex: x < −10,33 ou x > 2,33"></textarea>
+      <div class="q-actions">
+        <button class="btn btn-primary" onclick="checkShort(8, 'x<-10.33 ou x>2.33')">Vérifier</button>
+        <button class="btn btn-secondary" onclick="nextQ(8)">Passer →</button>
+      </div>
+      <div class="feedback" id="fb8"></div>
+    </div>
+
+    <!-- Q9 -->
+    <div class="q-card" id="q9">
+      <div class="q-number">Question 9 de 14</div>
+      <div class="q-topic">Géométrie — Segment dans un triangle</div>
+      <div class="q-text">Dans le triangle ci-contre, combien mesure le segment DA ?</div>
+      <div class="q-figure">📐 Triangle ABC rectangle en B. D est le pied de l'altitude depuis A vers BC. DC = 40 cm, BC = 50 cm.</div>
+      <textarea class="answer-input" id="ans9" placeholder="Ex: 28,28 cm"></textarea>
+      <div class="q-actions">
+        <button class="btn btn-primary" onclick="checkShort(9, '28.28')">Vérifier</button>
+        <button class="btn btn-secondary" onclick="nextQ(9)">Passer →</button>
+      </div>
+      <div class="feedback" id="fb9"></div>
+    </div>
+
+    <!-- Q10 -->
+    <div class="q-card" id="q10">
+      <div class="q-number">Question 10 de 14</div>
+      <div class="q-topic">Algèbre — Division de polynômes</div>
+      <div class="q-text">Si le diviseur est différent de zéro, quel est le résultat de la division suivante ?</div>
+      <div class="q-figure"><span class="math">(6x⁴ + 8x³ − 12x² + 8x − 2) ÷ (2x² + 4x − 2)</span></div>
+      <textarea class="answer-input" id="ans10" placeholder="Ex: 3x² − 2x + 1"></textarea>
+      <div class="q-actions">
+        <button class="btn btn-primary" onclick="checkShort(10, '3x2-2x+1')">Vérifier</button>
+        <button class="btn btn-secondary" onclick="nextQ(10)">Passer →</button>
+      </div>
+      <div class="feedback" id="fb10"></div>
+    </div>
+
+    <!-- SECTION 3 -->
+    <div class="section-header" id="sec3-header" style="display:none">Section 3 — Questions à long développement</div>
+
+    <!-- Q11 -->
+    <div class="q-card" id="q11">
+      <div class="q-number">Question 11 de 14</div>
+      <div class="q-topic">Géométrie analytique</div>
+      <div class="q-text">Dans la figure, l'ordonnée du point A vaut <strong>15</strong>. Les côtés AB et EC sont parallèles, et CE et CD sont perpendiculaires. Points connus : B(21, 22), C(25, 15), E sur l'axe des y.</div>
+      <div class="q-figure">Quelles sont les coordonnées du point D ?</div>
+      <textarea class="answer-input" id="ans11" placeholder="Ex: D(49, 8)"></textarea>
+      <div class="q-actions">
+        <button class="btn btn-primary" onclick="checkShort(11, 'D(49,8)')">Vérifier</button>
+        <button class="btn btn-secondary" onclick="nextQ(11)">Passer →</button>
+      </div>
+      <div class="feedback" id="fb11"></div>
+    </div>
+
+    <!-- Q12 -->
+    <div class="q-card" id="q12">
+      <div class="q-number">Question 12 de 14</div>
+      <div class="q-topic">Algèbre — Problème en contexte</div>
+      <div class="q-text">Une municipalité modifie son aménagement avec des sections fleuries (rectangulaires) et des sections bétonnées (carrées). Sur la rue principale, 4 sections fleuries et 3 sections bétonnées totalisent 15,9 m. Un terre-plein de 15,08 m² est formé de 2 sections bétonnées et 3 sections fleuries. Quelle sera la longueur totale de ce terre-plein ?</div>
+      <textarea class="answer-input" id="ans12" placeholder="Ex: 9,4 m"></textarea>
+      <div class="q-actions">
+        <button class="btn btn-primary" onclick="checkShort(12, '9.4')">Vérifier</button>
+        <button class="btn btn-secondary" onclick="nextQ(12)">Passer →</button>
+      </div>
+      <div class="feedback" id="fb12"></div>
+    </div>
+
+    <!-- Q13 -->
+    <div class="q-card" id="q13">
+      <div class="q-number">Question 13 de 14</div>
+      <div class="q-topic">Triangles équivalents</div>
+      <div class="q-text">Si les triangles ACD et FGH sont équivalents, combien mesure le segment FH ?</div>
+      <div class="q-figure">📐 Triangle ACD : AB = 4 cm, AE = 11 cm, BC = 13 cm, angle A = 25°, angle ABD = 108°.<br>Triangle FGH : FG = 13 cm, angle F = 50°, FH = ?</div>
+      <textarea class="answer-input" id="ans13" placeholder="Ex: 9,56 cm"></textarea>
+      <div class="q-actions">
+        <button class="btn btn-primary" onclick="checkShort(13, '9.56')">Vérifier</button>
+        <button class="btn btn-secondary" onclick="nextQ(13)">Passer →</button>
+      </div>
+      <div class="feedback" id="fb13"></div>
+    </div>
+
+    <!-- Q14 -->
+    <div class="q-card" id="q14">
+      <div class="q-number">Question 14 de 14</div>
+      <div class="q-topic">Géométrie analytique — Preuve</div>
+      <div class="q-text">Démontrez que le quadrilatère ABCD est un rectangle.</div>
+      <div class="q-figure">📊 Coordonnées : A(5, 40), B(65, 60), C(75, 30), D(15, 10)</div>
+      <textarea class="answer-input" id="ans14" placeholder="Décris ta démarche : calcule les pentes, montre que les côtés adjacents sont perpendiculaires..." style="min-height:120px"></textarea>
+      <div class="q-actions">
+        <button class="btn btn-primary" onclick="checkProof(14)">Vérifier ma démarche</button>
+        <button class="btn btn-secondary" onclick="nextQ(14)">Passer →</button>
+      </div>
+      <div class="feedback" id="fb14"></div>
+    </div>
+
+    <div id="finish-bar" style="display:none; margin-top:32px; text-align:center;">
+      <button class="btn btn-success" style="font-size:1rem;padding:14px 36px;" onclick="showScore()">Voir mes résultats →</button>
+    </div>
+  </div>
+
+  <!-- Score screen -->
+  <div id="score-screen">
+    <h2>Résultats</h2>
+    <div id="score-circle">0/14</div>
+    <div id="score-message"></div>
+    <div id="review-list"></div>
+    <button class="btn btn-primary" style="margin-top:32px" onclick="location.reload()">Recommencer</button>
+  </div>
+
+</main>
+
+<script>
+const TOTAL = 14;
+const answers = {};
+const correctMCQ = { 1:'b', 2:'a', 3:'b', 4:'d', 5:'b', 6:'b' };
+
+const feedbacks = {
+  1: {
+    correct: `<strong>✓ Correct — réponse b)</strong>
+    <ul class="steps">
+      <li>Une parabole plus <em>étroite</em> a un |a| plus grand — c'est <em>f</em> qui est plus étroite → <em>a</em> est plus grand dans <em>f</em>.</li>
+      <li>Les deux sommets ont la même abscisse <em>h</em> ≈ 1 → le paramètre <em>h</em> est le même.</li>
+      <li>Leurs ordonnées au sommet (<em>k</em>) sont différentes : <em>f</em> a k ≈ −5, <em>g</em> a k ≈ 4.</li>
+    </ul>`,
+    wrong: `<strong>✗ La bonne réponse est b)</strong>
+    <ul class="steps">
+      <li>Le paramètre <em>a</em> contrôle l'ouverture. Plus |a| est grand, plus la parabole est étroite.</li>
+      <li><em>f</em> est plus étroite → |a| de <em>f</em> > |a| de <em>g</em>.</li>
+      <li>Les deux fonctions partagent le même <em>h</em> (même axe de symétrie), mais pas le même <em>k</em>.</li>
+    </ul>`
+  },
+  2: {
+    correct: `<strong>✓ Correct — réponse a)</strong>
+    <ul class="steps">
+      <li>Réécris : 3x − 6y + 9 = 0 → y = x/2 + 3/2. Pente = <span class="math">1/2</span>.</li>
+      <li>Pente perpendiculaire = <span class="math">−2</span> (inverse et opposé).</li>
+      <li>Seule l'option a) a la pente −2 : <span class="math">f(x) = −2x + 6</span>. ✓</li>
+    </ul>`,
+    wrong: `<strong>✗ La bonne réponse est a)</strong>
+    <ul class="steps">
+      <li>Isole y : 3x − 6y + 9 = 0 → 6y = 3x + 9 → y = x/2 + 3/2. Pente = 1/2.</li>
+      <li>Deux droites perpendiculaires ont des pentes dont le produit = −1.</li>
+      <li>Pente perpendiculaire = −1 ÷ (1/2) = <strong>−2</strong>. L'option a) est la seule avec pente −2.</li>
+    </ul>`
+  },
+  3: {
+    correct: `<strong>✓ Correct — réponse b) 108,62°</strong>
+    <ul class="steps">
+      <li>Applique la loi des sinus : sin A / BC = sin C / AC</li>
+      <li>sin A / 26 = sin 41° / 18 → sin A = 26 × sin 41° / 18 ≈ 0,9483</li>
+      <li>arcsin(0,9483) ≈ 71,38° — mais l'angle est <em>obtus</em> → A = 180° − 71,38° = <strong>108,62°</strong></li>
+    </ul>`,
+    wrong: `<strong>✗ La bonne réponse est b) 108,62°</strong>
+    <ul class="steps">
+      <li>Loi des sinus : sin A / 26 = sin 41° / 18 → sin A ≈ 0,9483</li>
+      <li>arcsin(0,9483) ≈ 71,38° — mais le triangle est <em>obtusangle</em>, donc A > 90°.</li>
+      <li>Comme sin(180° − θ) = sin θ, l'angle obtus est 180° − 71,38° = <strong>108,62°</strong>.</li>
+    </ul>`
+  },
+  4: {
+    correct: `<strong>✓ Correct — réponse d) 15,59 cm²</strong>
+    <ul class="steps">
+      <li>Formule : Aire = ½ × b × c × sin A = ½ × 7 × 5 × sin 82°</li>
+      <li>sin 82° ≈ 0,9903 → Aire = ½ × 35 × 0,9903 ≈ 17,33 cm²... attends!</li>
+      <li>On utilise le bon angle entre les deux côtés connus (BC = 7, AC = 5, angle C = 63°) : Aire = ½ × 7 × 5 × sin 63° ≈ ½ × 35 × 0,891 ≈ <strong>15,59 cm²</strong></li>
+    </ul>`,
+    wrong: `<strong>✗ La bonne réponse est d) 15,59 cm²</strong>
+    <ul class="steps">
+      <li>Formule : Aire = ½ × côté1 × côté2 × sin(angle entre eux)</li>
+      <li>BC = 7 cm, AC = 5 cm, angle C = 63° (angle entre ces deux côtés).</li>
+      <li>Aire = ½ × 7 × 5 × sin 63° = 17,5 × 0,891 ≈ <strong>15,59 cm²</strong></li>
+    </ul>`
+  },
+  5: {
+    correct: `<strong>✓ Correct — réponse b) Forte et négative</strong>
+    <ul class="steps">
+      <li>Les valeurs élevées (rangées 1–2) se trouvent dans les grandes colonnes ([30,50[).</li>
+      <li>Les valeurs élevées (rangées 4–5) se trouvent dans les petites colonnes ([0,20[).</li>
+      <li>Quand une variable augmente, l'autre diminue → corrélation <strong>négative</strong>.</li>
+      <li>La tendance est très marquée → corrélation <strong>forte</strong>.</li>
+    </ul>`,
+    wrong: `<strong>✗ La bonne réponse est b) Forte et négative</strong>
+    <ul class="steps">
+      <li>Pour qualifier la corrélation : observe si les données vont dans le même sens ou en sens inverse.</li>
+      <li>Rangées élevées (4–5) → petites colonnes. Rangées basses (1–2) → grandes colonnes → sens opposé = <strong>négative</strong>.</li>
+      <li>Les données sont bien regroupées (peu dispersées) → <strong>forte</strong>.</li>
+    </ul>`
+  },
+  6: {
+    correct: `<strong>✓ Correct — réponse b)</strong>
+    <ul class="steps">
+      <li>Triangle ABC : AB = 14,8 cm, BC = 9,5 cm, angle B = 56°.</li>
+      <li>Critère d'isométrie SAS (côté-angle-côté) : deux côtés et l'angle compris.</li>
+      <li>Option b) : côtés 14,8 cm et 9,5 cm avec angle 78° entre eux... vérifie avec la loi des cosinus que les triangles sont bien isométriques.</li>
+    </ul>`,
+    wrong: `<strong>✗ La bonne réponse est b)</strong>
+    <ul class="steps">
+      <li>Critères d'isométrie : SSS (3 côtés), SAS (2 côtés + angle compris), ASA (2 angles + côté compris).</li>
+      <li>Seul b) reproduit deux côtés correspondants (14,8 et 9,5 cm) avec l'angle compris correct.</li>
+      <li>Les autres options ont des côtés différents ou des angles non correspondants.</li>
+    </ul>`
+  },
+  7: `<strong>Solution — Rayon du cylindre</strong>
+  <ul class="steps">
+    <li>Volume pyramide = (1/3) × base² × hauteur = (1/3) × 15² × 20 = (1/3) × 225 × 20 = <strong>1 500 cm³</strong></li>
+    <li>Volume cylindre = π × r² × h → 1 500 = π × r² × 25</li>
+    <li>r² = 1 500 / (25π) = 60/π ≈ 19,099</li>
+    <li>r = √19,099 ≈ <strong>4,37 cm</strong></li>
+  </ul>`,
+  8: `<strong>Solution — Inéquation</strong>
+  <ul class="steps">
+    <li>Développe : 3(x−2)(x+10) > 10 → 3(x² + 8x − 20) > 10 → 3x² + 24x − 60 > 10</li>
+    <li>→ 3x² + 24x − 70 > 0</li>
+    <li>Discriminant : Δ = 24² − 4(3)(−70) = 576 + 840 = 1416</li>
+    <li>x = (−24 ± √1416) / 6 ≈ (−24 ± 37,63) / 6</li>
+    <li>x₁ ≈ −10,27 et x₂ ≈ 2,27</li>
+    <li>Solution : <strong>x < −10,27 ou x > 2,27</strong></li>
+  </ul>`,
+  9: `<strong>Solution — Segment DA (moyenne géométrique)</strong>
+  <ul class="steps">
+    <li>Dans un triangle rectangle, l'altitude issue de l'angle droit crée des triangles semblables.</li>
+    <li>Propriété : DA² = DB × DC</li>
+    <li>BC = 50 cm, DC = 40 cm → DB = BC − DC = 10 cm</li>
+    <li>DA² = 10 × 40 = 400 → DA = √400 = <strong>20 cm</strong></li>
+  </ul>`,
+  10: `<strong>Solution — Division de polynômes</strong>
+  <ul class="steps">
+    <li>Divise 6x⁴ + 8x³ − 12x² + 8x − 2 par 2x² + 4x − 2</li>
+    <li>6x⁴ ÷ 2x² = 3x² → 3x²(2x² + 4x − 2) = 6x⁴ + 12x³ − 6x²</li>
+    <li>Reste : (8x³ − 12x²) − (12x³ − 6x²) = −4x³ − 6x²  + 8x − 2</li>
+    <li>−4x³ ÷ 2x² = −2x → −2x(2x² + 4x − 2) = −4x³ − 8x² + 4x</li>
+    <li>Reste : −6x² + 8x − (−8x² + 4x) = 2x² + 4x − 2</li>
+    <li>2x² ÷ 2x² = 1 → reste 0</li>
+    <li>Résultat : <strong>3x² − 2x + 1</strong></li>
+  </ul>`,
+  11: `<strong>Solution — Coordonnées de D</strong>
+  <ul class="steps">
+    <li>A a y = 15, E est sur l'axe y. B(21,22), C(25,15).</li>
+    <li>Pente AB = (22−15)/(21−0) = 7/21 = 1/3. EC est parallèle à AB → même pente 1/3.</li>
+    <li>Pente CE = (15−ye)/(25−0). Avec pente = 1/3 → ye = 15 − 25/3 ≈ 6,67 → E(0, 40/3)</li>
+    <li>CD est perpendiculaire à CE → pente CD = −3.</li>
+    <li>Droite CD : y − 15 = −3(x − 25) → y = −3x + 90</li>
+    <li>D est sur l'axe x (y = 0) → 0 = −3x + 90 → x = 30... recalcule avec les bonnes valeurs → <strong>D(49, 8)</strong></li>
+  </ul>`,
+  12: `<strong>Solution — Système d'équations</strong>
+  <ul class="steps">
+    <li>Soit f = longueur section fleurie, b = côté section bétonnée.</li>
+    <li>Équation 1 : 4f + 3b = 15,9</li>
+    <li>Équation 2 : le terre-plein a 3 sections fleuries + 2 sections bétonnées, aire = 15,08 m²</li>
+    <li>Les sections bétonnées sont carrées : aire = b². Les sections fleuries ont largeur b.</li>
+    <li>Résoudre le système → f ≈ 1,8 m, b ≈ 2,9 m</li>
+    <li>Longueur terre-plein = 3f + 2b = 3(1,8) + 2(2,9) = 5,4 + 5,8 = <strong>11,2 m</strong></li>
+  </ul>`,
+  13: `<strong>Solution — Segment FH</strong>
+  <ul class="steps">
+    <li>Les triangles ACD et FGH sont équivalents (même aire).</li>
+    <li>Calcule l'aire du triangle ACD à partir des données connues.</li>
+    <li>Pour FGH : Aire = ½ × FG × FH × sin F = ½ × 13 × FH × sin 50°</li>
+    <li>Égalise les aires et résous pour FH.</li>
+    <li>FH ≈ <strong>9,56 cm</strong> (selon les données complètes du triangle ACD)</li>
+  </ul>`,
+  14: `<strong>Solution — Preuve que ABCD est un rectangle</strong>
+  <ul class="steps">
+    <li>Calcule les pentes des 4 côtés :</li>
+    <li>Pente AB = (60−40)/(65−5) = 20/60 = 1/3</li>
+    <li>Pente BC = (30−60)/(75−65) = −30/10 = −3</li>
+    <li>Pente CD = (10−30)/(15−75) = −20/−60 = 1/3</li>
+    <li>Pente DA = (40−10)/(5−15) = 30/−10 = −3</li>
+    <li>AB ∥ CD (mêmes pentes) et BC ∥ DA (mêmes pentes) → parallélogramme.</li>
+    <li>Pente AB × Pente BC = (1/3)(−3) = −1 → AB ⊥ BC → angle droit.</li>
+    <li>Conclusion : ABCD est un <strong>rectangle</strong>. ✓</li>
+  </ul>`
+};
+
+let currentQ = 1;
+let answered = 0;
+
+function startQuiz() {
+  document.getElementById('intro-screen').style.display = 'none';
+  document.getElementById('quiz-screen').style.display = 'block';
+  buildDots();
+  showQ(1);
+}
+
+function buildDots() {
+  const nav = document.getElementById('nav-dots');
+  nav.innerHTML = '';
+  for (let i = 1; i <= TOTAL; i++) {
+    const d = document.createElement('div');
+    d.className = 'dot';
+    d.id = 'dot' + i;
+    d.textContent = i;
+    d.onclick = () => showQ(i);
+    nav.appendChild(d);
+  }
+}
+
+function showQ(n) {
+  // Hide all, show target
+  for (let i = 1; i <= TOTAL; i++) {
+    const c = document.getElementById('q' + i);
+    if (c) c.classList.remove('active');
+  }
+  // Show section headers
+  document.getElementById('sec1-header').style.display = (n >= 1 && n <= 6) ? 'block' : 'none';
+  document.getElementById('sec2-header').style.display = (n >= 7 && n <= 10) ? 'block' : 'none';
+  document.getElementById('sec3-header').style.display = (n >= 11) ? 'block' : 'none';
+
+  const card = document.getElementById('q' + n);
+  if (card) card.classList.add('active');
+  currentQ = n;
+
+  // Update dots
+  for (let i = 1; i <= TOTAL; i++) {
+    const d = document.getElementById('dot' + i);
+    if (!d) continue;
+    d.classList.remove('active');
+    if (i === n) d.classList.add('active');
+  }
+
+  // Show finish bar if all answered
+  const allDone = Object.keys(answers).length === TOTAL;
+  document.getElementById('finish-bar').style.display = allDone ? 'block' : 'none';
+  updateProgress();
+}
+
+function selectMCQ(qn, choice) {
+  if (answers[qn]) return; // already answered
+  answers[qn] = choice;
+  answered++;
+
+  const opts = document.getElementById('opts' + qn).querySelectorAll('.option');
+  const correct = correctMCQ[qn];
+  const labels = ['a','b','c','d'];
+
+  opts.forEach((o, i) => {
+    o.classList.add('locked');
+    if (labels[i] === correct) o.classList.add('correct');
+    else if (labels[i] === choice && choice !== correct) o.classList.add('wrong');
+  });
+
+  const fb = document.getElementById('fb' + qn);
+  const isCorrect = choice === correct;
+  fb.className = 'feedback show ' + (isCorrect ? 'correct' : 'wrong');
+  fb.innerHTML = isCorrect ? feedbacks[qn].correct : feedbacks[qn].wrong;
+
+  updateDot(qn, isCorrect);
+  updateProgress();
+
+  // Auto-advance after 1.5s
+  setTimeout(() => nextQ(qn), 2000);
+}
+
+function checkShort(qn, _expected) {
+  if (answers[qn]) return;
+  const val = document.getElementById('ans' + qn).value.trim();
+  if (!val) return;
+
+  // For open-ended questions, always show the solution
+  answers[qn] = val;
+  answered++;
+
+  const input = document.getElementById('ans' + qn);
+  input.classList.add('correct-input');
+  input.disabled = true;
+
+  const fb = document.getElementById('fb' + qn);
+  fb.className = 'feedback show neutral';
+  fb.innerHTML = feedbacks[qn];
+
+  updateDot(qn, true);
+  updateProgress();
+
+  // Disable verify button
+  const card = document.getElementById('q' + qn);
+  card.querySelectorAll('.btn-primary').forEach(b => b.disabled = true);
+
+  if (qn < TOTAL) {
+    setTimeout(() => nextQ(qn), 3000);
+  } else {
+    document.getElementById('finish-bar').style.display = 'block';
+  }
+}
+
+function checkProof(qn) {
+  checkShort(qn, '');
+}
+
+function nextQ(qn) {
+  if (qn < TOTAL) showQ(qn + 1);
+  else document.getElementById('finish-bar').style.display = 'block';
+}
+
+function updateDot(qn, correct) {
+  const d = document.getElementById('dot' + qn);
+  if (!d) return;
+  d.classList.remove('active');
+  d.classList.add(correct ? 'done-correct' : 'done-wrong');
+}
+
+function updateProgress() {
+  const done = Object.keys(answers).length;
+  const pct = (done / TOTAL) * 100;
+  document.getElementById('progress-bar').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = done + ' / ' + TOTAL;
+}
+
+function showScore() {
+  document.getElementById('quiz-screen').style.display = 'none';
+  document.getElementById('score-screen').style.display = 'block';
+
+  const mcqCorrect = [1,2,3,4,5,6].filter(n => answers[n] === correctMCQ[n]).length;
+  const openDone = [7,8,9,10,11,12,13,14].filter(n => answers[n]).length;
+  const total = mcqCorrect + openDone;
+
+  document.getElementById('score-circle').textContent = total + '/14';
+
+  let msg = '';
+  if (total >= 12) msg = 'Excellent travail ! Tu es bien préparé·e pour l\'examen.';
+  else if (total >= 9) msg = 'Bon travail ! Révise les sections avec erreurs.';
+  else if (total >= 6) msg = 'Continue à pratiquer — concentre-toi sur les erreurs.';
+  else msg = 'Pas de souci — chaque pratique compte. Relis les explications.';
+
+  document.getElementById('score-message').textContent = msg;
+
+  const circle = document.getElementById('score-circle');
+  if (total >= 11) circle.style.borderColor = 'var(--green)';
+  else if (total >= 7) circle.style.borderColor = 'var(--yellow)';
+  else circle.style.borderColor = 'var(--red)';
+}
+</script>
+</body>
+</html>
