@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GHRA Demo Guide</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f2f5; color: #1e2d3d; display: flex; min-height: 100vh; }
+
+    #toc { position: fixed; top: 0; left: 0; width: 200px; height: 100vh; background: #1a2b4a; padding: 24px 0; overflow-y: auto; z-index: 100; }
+    #toc .toc-title { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.35); padding: 0 18px 14px; border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 10px; }
+    #toc .toc-section { font-size: 9px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: rgba(255,255,255,0.25); padding: 10px 18px 3px; }
+    #toc a { display: block; padding: 6px 18px; font-size: 11.5px; color: rgba(255,255,255,0.6); text-decoration: none; border-left: 3px solid transparent; transition: all 0.15s; }
+    #toc a:hover, #toc a.active { color: #fff; border-left-color: #4a9eff; background: rgba(74,158,255,0.08); }
+
+    #main { margin-left: 200px; flex: 1; padding: 36px 44px 80px; max-width: 860px; }
+
+    .page-header { margin-bottom: 36px; }
+    .page-header .badge { display: inline-block; background: #4a9eff; color: #fff; font-size: 10px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 3px 10px; border-radius: 20px; margin-bottom: 10px; }
+    .page-header h1 { font-size: 24px; font-weight: 700; color: #1a2b4a; }
+    .page-header .meta { margin-top: 6px; font-size: 12px; color: #6b7a8d; }
+
+    .section-title { font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: #4a9eff; margin: 44px 0 16px; padding-bottom: 8px; border-bottom: 2px solid #e4e9f0; }
+
+    .card { background: #fff; border-radius: 10px; border: 1px solid #e4e9f0; margin-bottom: 16px; overflow: hidden; }
+    .card-header { background: #1a2b4a; padding: 11px 18px; display: flex; align-items: center; gap: 10px; }
+    .scene-badge { background: rgba(74,158,255,0.25); color: #93c5fd; font-size: 9.5px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; padding: 2px 9px; border-radius: 20px; white-space: nowrap; }
+    .card-header h2 { font-size: 13px; font-weight: 600; color: #fff; }
+    .card-body { padding: 16px 20px; display: flex; flex-direction: column; gap: 8px; }
+
+    .row { display: flex; gap: 12px; align-items: baseline; font-size: 13px; line-height: 1.5; }
+    .role { flex-shrink: 0; min-width: 60px; font-size: 10px; font-weight: 700; letter-spacing: 0.5px; text-transform: uppercase; color: #94a3b8; padding-top: 1px; }
+    .role.click  { color: #1a2b4a; }
+    .role.type   { color: #0369a1; }
+    .role.joule  { color: #7c3aed; }
+    .role.see    { color: #059669; }
+    .role.switch { color: #b45309; }
+    .content { flex: 1; }
+    .content em { color: #64748b; font-style: normal; }
+
+    .btn-group { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 2px; }
+    .btn { display: inline-block; font-size: 12px; font-weight: 600; padding: 3px 12px; border-radius: 20px; border: 1px solid #cbd5e1; background: #f1f5f9; color: #64748b; }
+    .btn.active { background: #1a2b4a; color: #fff; border-color: #1a2b4a; }
+
+    .type-hint { display: inline-flex; align-items: center; gap: 5px; background: #0c1f3a; color: #93c5fd; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 11.5px; padding: 2px 8px; border-radius: 4px; }
+    .copy-btn { background: none; border: none; cursor: pointer; padding: 0; color: rgba(147,197,253,0.5); display: inline-flex; align-items: center; transition: color 0.15s; }
+    .copy-btn:hover { color: #fff; }
+    .copy-btn svg { width: 11px; height: 11px; }
+    .copy-btn.copied { color: #4ade80; }
+
+    /* Inline speaker note — attached to a specific step */
+    .note-inline {
+      margin-left: 72px;
+      padding: 6px 12px 6px 10px;
+      border-left: 3px solid #f59e0b;
+      background: #fffbeb;
+      border-radius: 0 5px 5px 0;
+    }
+    .note-inline ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 3px; }
+    .note-inline li { font-size: 12px; line-height: 1.55; color: #78350f; padding-left: 14px; position: relative; }
+    .note-inline li::before { content: '›'; position: absolute; left: 0; color: #f59e0b; font-weight: 700; }
+
+    /* Section-level speaker note block */
+    .speaker-notes { background: #fffbeb; border-left: 4px solid #f59e0b; border-radius: 0 6px 6px 0; padding: 12px 16px; margin-top: 2px; }
+    .notes-label { font-size: 9.5px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; color: #92400e; margin-bottom: 8px; }
+    .speaker-notes ul { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 5px; }
+    .speaker-notes li { font-size: 12.5px; line-height: 1.6; color: #78350f; padding-left: 16px; position: relative; }
+    .speaker-notes li::before { content: '›'; position: absolute; left: 0; color: #f59e0b; font-weight: 700; }
+
+    .tip { background: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 0 6px 6px 0; padding: 8px 14px; margin-bottom: 14px; font-size: 12.5px; color: #1e40af; }
+    .note { font-size: 11.5px; color: #94a3b8; font-style: italic; }
+
+  @media print {
+    * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+
+    #toc { display: none; }
+
+    body { background: #fff; display: block; }
+
+    #main { margin-left: 0; padding: 24px 32px; max-width: 100%; }
+    .page-header h1 { font-size: 20px; color: #1a2b4a; }
+    .page-header .badge { background: #1a2b4a; }
+    .page-header .meta { font-size: 11px; }
+
+    .section-title { margin: 28px 0 10px; font-size: 9px; break-after: avoid; }
+
+    .card { break-inside: avoid; border: 1px solid #cbd5e1; margin-bottom: 12px; box-shadow: none; }
+    .card-header { background: #1a2b4a !important; padding: 8px 14px; }
+    .card-header h2 { font-size: 12px; }
+    .scene-badge { font-size: 8.5px; }
+    .card-body { padding: 10px 14px; gap: 6px; }
+
+    .row { font-size: 11.5px; }
+    .role { font-size: 9px; min-width: 48px; }
+
+    .btn-group { gap: 4px; }
+    .btn { font-size: 10px; padding: 2px 8px; }
+    .btn.active { background: #1a2b4a; color: #fff; }
+
+    .type-hint { font-size: 10.5px; padding: 1px 6px; }
+    .copy-btn { display: none; }
+
+    .speaker-notes { background: #fffbeb !important; border-left: 3px solid #f59e0b; padding: 8px 12px; }
+    .speaker-notes li { font-size: 11px; }
+    .note-inline { margin-left: 52px; padding: 4px 8px; }
+    .note-inline li { font-size: 11px; }
+
+    .tip { font-size: 11.5px; padding: 6px 12px; background: #eff6ff !important; }
+
+    a { color: inherit; text-decoration: none; }
+  }
+  </style>
+</head>
+<body>
+
+<nav id="toc">
+  <div class="toc-title">Demo Guide</div>
+  <div class="toc-section">Intro</div>
+  <a href="#disclaimer">Disclaimer</a>
+  <div class="toc-section">Setup</div>
+  <a href="#setup">Reset</a>
+  <div class="toc-section">BOL Flow</div>
+  <a href="#step1">1 — Analyst captures</a>
+  <a href="#step2">2 — Supervisor rejects</a>
+  <a href="#step3">3 — Analyst recreates</a>
+  <a href="#step4">4 — Supervisor posts</a>
+  <a href="#step5">5 — Analyst final view</a>
+  <div class="toc-section">Amendment Flow</div>
+  <a href="#a1">Scene A1</a>
+  <a href="#a2">Scene A2</a>
+  <a href="#a3">Scene A3</a>
+  <a href="#a4">Scene A4</a>
+  <a href="#a5">Scene A5</a>
+  <a href="#a6">Scene A6</a>
+</nav>
+
+<main id="main">
+
+  <div class="page-header">
+    <div class="badge">GHRA · Autonomous Revenue Accounting</div>
+    <h1>Demo Guide</h1>
+    <div class="meta">BOL Flow · Amendment Flow &nbsp;·&nbsp; Steps + Speaker Notes</div>
+  </div>
+
+  <!-- Disclaimer -->
+  <div class="section-title" id="disclaimer">Disclaimer</div>
+  <div class="card">
+    <div class="card-header"><h2>Opening the disclaimer slide</h2></div>
+    <div class="card-body">
+      <div class="speaker-notes">
+        <div class="notes-label">What to say</div>
+        <ul>
+          <li>"Before we start — there's a disclaimer slide here, I won't read it out but please take a moment to review it."</li>
+          <li>"The short version: what you're about to see is a design vision, not a product commitment."</li>
+          <li>"We're here to explore ideas and get your feedback."</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Setup -->
+  <div class="section-title" id="setup">Setup</div>
+  <div class="card">
+    <div class="card-header"><h2>Reset the prototype</h2></div>
+    <div class="card-body">
+      <div class="row"><div class="role click">click</div><div class="content">SAP logo (top left) to reset · confirm <strong>Revenue Analyst</strong> · Scene 1</div></div>
+      <div class="speaker-notes" data-note="setup"></div>
+    </div>
+  </div>
+
+  <!-- BOL Flow -->
+  <div class="section-title">BOL Flow</div>
+  <div class="tip"><strong>Story:</strong> A new BOL arrived from the terminal. The Revenue Analyst reviews it with Joule, sets the price, and captures the lift. The Supervisor rejects it due to a price discrepancy. The Analyst corrects and resubmits. The Supervisor posts. Revenue is recognized.</div>
+
+  <!-- Step 1 -->
+  <div class="card" id="step1">
+    <div class="card-header"><div class="scene-badge">Scenes 1–5</div><h2>1 — Analyst captures the BOL</h2></div>
+    <div class="card-body">
+      <div class="row"><div class="role see">~5s</div><div class="content">Notification badge appears</div></div>
+      <div class="note-inline" data-note="step1_notification"></div>
+
+      <div class="row"><div class="role click">click</div><div class="content"><svg style="width:14px;height:14px;vertical-align:-2px;margin-right:4px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> → <em>BOL-2026-DLD-047 · New BOL Detected</em></div></div>
+      <div class="row"><div class="role joule">Joule</div><div class="content"><em>"I've parsed JDGFN3476O9 from Ocean Crest. Would you like to make any changes?"</em></div></div>
+      <div class="note-inline" data-note="step1_parsed"></div>
+      <div class="note-inline" data-note="step1_charts"></div>
+
+      <div class="row"><div class="role click">click</div><div class="content">
+        <div class="btn-group"><span class="btn">No changes needed</span><span class="btn active">Add the price</span><span class="btn">Change attributes</span></div>
+      </div></div>
+      <div class="row"><div class="role joule">Joule</div><div class="content"><em>"What is the price per BBL?"</em></div></div>
+      <div class="row"><div class="role type">type</div><div class="content"><span class="type-hint">70<button class="copy-btn" onclick="copyText(this,'70')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button></span></div></div>
+      <div class="row"><div class="role joule">Joule</div><div class="content"><em>"Updated to $70.00/BBL. Is this Provisional or Final?"</em></div></div>
+      <div class="row"><div class="role click">click</div><div class="content">
+        <div class="btn-group"><span class="btn active">Provisional</span><span class="btn">Final</span></div>
+      </div></div>
+      <div class="row"><div class="role joule">Joule</div><div class="content"><em>"Noted. Shall I go and create the invoice?"</em></div></div>
+      <div class="row"><div class="role see">shows</div><div class="content">BOL summary — Vessel: Ocean Crest · Lifting Number: <strong>JDGFN347G09</strong> · Volume: 45,000 BBL · Price/BBL: <strong>$70.00</strong> · Total: $3,150,000.00 · Provisional</div></div>
+      <div class="row"><div class="role type">type</div><div class="content"><span class="note">Optional — shows AI understands free text beyond buttons:</span><br><span class="type-hint">update lift number to JDGFN347G09<button class="copy-btn" onclick="copyText(this,'update lift number to JDGFN347G09')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button></span></div></div>
+      <div class="note-inline" data-note="step1_freetext"></div>
+
+      <div class="row"><div class="role click">click</div><div class="content">
+        <div class="btn-group"><span class="btn active">No, that's all</span><span class="btn">Yes, another change</span></div>
+      </div></div>
+      <div class="row"><div class="role click">click</div><div class="content">
+        <div class="btn-group"><span class="btn active">Show me all lifts for current month</span><span class="btn">Yes, create the invoice</span><span class="btn">Discard</span></div>
+      </div></div>
+      <div class="note-inline" data-note="step1_lifts"></div>
+
+      <div class="row"><div class="role click">click</div><div class="content">
+        <div class="btn-group"><span class="btn">Show me all lifts for current month</span><span class="btn active">Yes, create the invoice</span><span class="btn">Discard</span></div>
+      </div></div>
+      <div class="row"><div class="role joule">Joule</div><div class="content"><em>"Capturing in S/4HANA… Sales Order, Delivery, Invoice created. Sent to Supervisor."</em></div></div>
+      <div class="row"><div class="role see">shows</div><div class="content">Document chain: BOL → SO → Delivery → Invoice (Pending Review)</div></div>
+      <div class="note-inline" data-note="step1_captured"></div>
+      <div class="note-inline" data-note="step1_processflow"></div>
+
+      <div class="row"><div class="role switch">switch</div><div class="content"><strong>Revenue Supervisor</strong></div></div>
+    </div>
+  </div>
+
+  <!-- Step 2 -->
+  <div class="card" id="step2">
+    <div class="card-header"><div class="scene-badge">Scenes 7–8b</div><h2>2 — Supervisor rejects</h2></div>
+    <div class="card-body">
+      <div class="row"><div class="role click">click</div><div class="content"><svg style="width:14px;height:14px;vertical-align:-2px;margin-right:4px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> → <em>FI-2026-08823 — Invoice Ready for Review</em></div></div>
+      <div class="note-inline" data-note="step2_notification"></div>
+
+      <div class="row"><div class="role joule">Joule</div><div class="content"><em>"Would you like to post the invoice or reject it?"</em></div></div>
+      <div class="row"><div class="role click">click</div><div class="content">
+        <div class="btn-group"><span class="btn">Post Invoice</span><span class="btn active">Reject</span></div>
+      </div></div>
+      <div class="row"><div class="role see">panel</div><div class="content">Select <strong>03 - Wrong Prices and Conditions</strong> · add comment <span class="type-hint" style="font-size:11px">Suggested price is 66.10<button class="copy-btn" onclick="copyText(this,'Suggested price is 66.10')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button></span> · click <strong>Reject</strong></div></div>
+      <div class="note-inline" data-note="step2_rejection"></div>
+
+      <div class="row"><div class="role switch">switch</div><div class="content"><strong>Revenue Analyst</strong> → <svg style="width:14px;height:14px;vertical-align:-2px;margin-right:2px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> → <em>FI-2026-08823 Rejected</em> → click notification</div></div>
+      <div class="note-inline" data-note="step2_switch"></div>
+    </div>
+  </div>
+
+  <!-- Step 3 -->
+  <div class="card" id="step3">
+    <div class="card-header"><div class="scene-badge">Scene 10</div><h2>3 — Analyst corrects and recreates</h2></div>
+    <div class="card-body">
+      <div class="row"><div class="role joule">Joule</div><div class="content"><em>"Rejected — Wrong Prices and Conditions (03). Suggested rate: $66.10/BBL. What is the corrected price?"</em></div></div>
+      <div class="note-inline" data-note="step3_context"></div>
+
+      <div class="row"><div class="role type">type</div><div class="content"><span class="type-hint">66.10<button class="copy-btn" onclick="copyText(this,'66.10')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button></span></div></div>
+      <div class="row"><div class="role joule">Joule</div><div class="content"><em>"Shall I recreate the invoice chain and resubmit?"</em></div></div>
+      <div class="row"><div class="role click">click</div><div class="content">
+        <div class="btn-group"><span class="btn active">Yes, recreate</span><span class="btn">Discard</span></div>
+      </div></div>
+      <div class="note-inline" data-note="step3_recreate"></div>
+
+      <div class="row"><div class="role switch">switch</div><div class="content"><strong>Revenue Supervisor</strong></div></div>
+    </div>
+  </div>
+
+  <!-- Step 4 -->
+  <div class="card" id="step4">
+    <div class="card-header"><div class="scene-badge">Scene 11</div><h2>4 — Supervisor posts</h2></div>
+    <div class="card-body">
+      <div class="row"><div class="role click">click</div><div class="content"><svg style="width:14px;height:14px;vertical-align:-2px;margin-right:4px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> → corrected invoice notification</div></div>
+      <div class="row"><div class="role click">click</div><div class="content">
+        <div class="btn-group"><span class="btn active">Post Invoice</span><span class="btn">Reject</span></div>
+      </div></div>
+      <div class="row"><div class="role joule">Joule</div><div class="content"><em>"You are about to post FI-2026-08823. Confirm posting?"</em></div></div>
+      <div class="note-inline" data-note="step4_confirm"></div>
+
+      <div class="row"><div class="role click">click</div><div class="content">
+        <div class="btn-group"><span class="btn active">Yes, post it</span><span class="btn">No, cancel</span></div>
+      </div></div>
+      <div class="note-inline" data-note="step4_post"></div>
+      <div class="row"><div class="role switch">switch</div><div class="content"><strong>Revenue Analyst</strong></div></div>
+    </div>
+  </div>
+
+  <!-- Step 5 -->
+  <div class="card" id="step5">
+    <div class="card-header"><div class="scene-badge">Scene 13</div><h2>5 — Analyst reviews posted invoice</h2></div>
+    <div class="card-body">
+      <div class="row"><div class="role click">click</div><div class="content"><svg style="width:14px;height:14px;vertical-align:-2px;margin-right:4px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> → <em>Posted ✓</em></div></div>
+      <div class="row"><div class="role see">shows</div><div class="content">BOL card: <strong>Posted ✓</strong> · Chain: BOL → SO → Delivery → Invoice (Cancelled) → Corrected Invoice (Posted)</div></div>
+      <div class="row"><div class="role joule">Joule</div><div class="content"><em>"Revenue for Ocean Crest has been recognized in MM period May 2026."</em></div></div>
+      <div class="note-inline" data-note="step5_final"></div>
+      <div class="speaker-notes" data-note="step5_closing"></div>
+    </div>
+  </div>
+
+  <!-- Amendment Flow -->
+  <div class="section-title">Amendment Flow</div>
+  <div class="tip"><strong>Story:</strong> An invoice is already posted. The Analyst needs to correct the price — a different process that requires a different path. Joule knows the rules.</div>
+
+  <div class="card" id="a1">
+    <div class="card-header"><div class="scene-badge">Scene A1</div><h2>New Conversation</h2></div>
+    <div class="card-body">
+      <div class="row"><div class="role click">click</div><div class="content"><strong>+</strong> next to Conversations in the left nav</div></div>
+      <div class="row"><div class="role joule">Joule</div><div class="content"><em>"Good morning. What can we tackle together?"</em></div></div>
+      <div class="note-inline" data-note="a1_start"></div>
+    </div>
+  </div>
+
+  <div class="card" id="a2">
+    <div class="card-header"><div class="scene-badge">Scene A2</div><h2>Discover & Pull Up Lift</h2></div>
+    <div class="card-body">
+      <div class="row"><div class="role type">type</div><div class="content"><span class="type-hint">Show me lifts for Horizon Apex Resources for last month<button class="copy-btn" onclick="copyText(this,'Show me lifts for Horizon Apex Resources for last month')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button></span></div></div>
+      <div class="row"><div class="role joule">Joule</div><div class="content"><em>Lists 2 lifts for June 2026 · JDGFN3476O9 and KDFH2891P4</em></div></div>
+      <div class="note-inline" data-note="a2_liftlist"></div>
+      <div class="row"><div class="role click">click</div><div class="content">
+        <div class="btn-group"><span class="btn active">JDGFN3476O9</span><span class="btn">KDFH2891P4</span></div>
+      </div></div>
+      <div class="row"><div class="role see">shows</div><div class="content">S/4HANA document chain loads · Invoice FI-2026-09100 (Posted, $65/BBL)</div></div>
+      <div class="note-inline" data-note="a2_loaded"></div>
+
+      <div class="row"><div class="role type">type</div><div class="content"><span class="note">Demo the agent rule:</span> <span class="type-hint">Change price and Vessel name<button class="copy-btn" onclick="copyText(this,'Change price and Vessel name')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button></span></div></div>
+      <div class="row"><div class="role joule">Joule</div><div class="content"><em>"Only price can be changed since the invoice is already posted."</em></div></div>
+      <div class="note-inline" data-note="a2_rule"></div>
+
+      <div class="row"><div class="role click">click</div><div class="content">
+        <div class="btn-group"><span class="btn active">Change price</span><span class="btn">Help with something else</span></div>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="card" id="a3">
+    <div class="card-header"><div class="scene-badge">Scene A3</div><h2>Change Price</h2></div>
+    <div class="card-body">
+      <div class="row"><div class="role joule">Joule</div><div class="content"><em>"What is the price per BBL?"</em></div></div>
+      <div class="row"><div class="role type">type</div><div class="content"><span class="type-hint">75<button class="copy-btn" onclick="copyText(this,'75')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg></button></span></div></div>
+      <div class="row"><div class="role joule">Joule</div><div class="content"><em>"Original: $65.00/BBL · Amended: $75.00/BBL (+$10.00/BBL) · Amendment value: +$500,000.00"</em></div></div>
+      <div class="note-inline" data-note="a3_price"></div>
+      <div class="note-inline" data-note="a3_delta"></div>
+      <div class="note-inline" data-note="a3_process"></div>
+      <div class="row"><div class="role click">click</div><div class="content">
+        <div class="btn-group"><span class="btn active">Yes, create</span><span class="btn">Discard</span></div>
+      </div></div>
+    </div>
+  </div>
+
+  <div class="card" id="a4">
+    <div class="card-header"><div class="scene-badge">Scene A4</div><h2>Memo Created</h2></div>
+    <div class="card-body">
+      <div class="row"><div class="role see">shows</div><div class="content">Chain updates: Debit Memo Request (Completed) · Debit Memo Document (On Hold)</div></div>
+      <div class="note-inline" data-note="a4_created"></div>
+      <div class="row"><div class="role switch">switch</div><div class="content"><strong>Revenue Supervisor</strong></div></div>
+    </div>
+  </div>
+
+  <div class="card" id="a5">
+    <div class="card-header"><div class="scene-badge">Scene A5</div><h2>Supervisor Approves</h2></div>
+    <div class="card-body">
+      <div class="row"><div class="role click">click</div><div class="content"><svg style="width:14px;height:14px;vertical-align:-2px;margin-right:4px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> → <em>Debit Memo pending approval</em></div></div>
+      <div class="row"><div class="role click">click</div><div class="content">
+        <div class="btn-group"><span class="btn active">Approve</span><span class="btn">Reject</span></div>
+      </div></div>
+      <div class="note-inline" data-note="a5_approve"></div>
+      <div class="row"><div class="role switch">switch</div><div class="content"><strong>Revenue Analyst</strong></div></div>
+    </div>
+  </div>
+
+  <div class="card" id="a6">
+    <div class="card-header"><div class="scene-badge">Scene A6</div><h2>Amendment Complete</h2></div>
+    <div class="card-body">
+      <div class="row"><div class="role click">click</div><div class="content"><svg style="width:14px;height:14px;vertical-align:-2px;margin-right:4px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> → <em>Debit Memo Approved ✓</em></div></div>
+      <div class="row"><div class="role see">shows</div><div class="content">Debit Memo Document → <strong>Posted (green)</strong></div></div>
+      <div class="speaker-notes" data-note="a6_closing"></div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+  // Speaker notes inlined — no fetch needed for offline use
+  const DEMO_NOTES = {"setup":{"type":"block","label":"Speaker Notes","notes":["GHRA Autonomous Revenue Accounting — an Agentic AI solution built on the SAP Engagement Layer with Joule as the AI assistant.","At the heart of this solution is the Lift Monitoring Agent — it watches a designated folder for incoming Bill of Lading documents and triggers the entire downstream workflow the moment a new document arrives.","Replaces Fiori transaction navigation with a conversation-driven, agent-powered workspace.","Human-in-the-Loop at every financial decision point — the analyst stays in control throughout."]},"step1_notification":{"type":"inline","notes":["The Lift Monitoring Agent surfaces a notification to the analyst — a new BOL has been detected in the monitored folder and is ready for review."]},"step1_parsed":{"type":"inline","notes":["Joule has already extracted all BOL fields — vessel, lifting number, volume — from the document.","The only missing piece is the price. That's the analyst's input — the one thing the document doesn't contain."]},"step1_charts":{"type":"inline","notes":["Alongside the BOL details, Joule surfaces contextual analytics — entitlement vs. actual volumes, monthly trends, and partner comparisons. Visual data helps the analyst make faster, more confident decisions without leaving the workspace."]},"step1_freetext":{"type":"inline","notes":["The analyst isn't limited to buttons — Joule understands free-text corrections at any point in the conversation."]},"step1_lifts":{"type":"inline","notes":["The analyst can query the full lifting history mid-conversation without switching screens."]},"step1_captured":{"type":"inline","notes":["One confirmation creates the full S/4HANA document chain: Sales Order, Outbound Delivery, and FI Invoice.","What required multiple transactions now happens in a single conversation."]},"step1_processflow":{"type":"inline","notes":["The S/4HANA document chain renders as a live process flow — giving the analyst an immediate, visual understanding of where the transaction stands across the full downstream chain."]},"step2_notification":{"type":"inline","notes":["The Supervisor is notified in real time — the approval request arrives directly in the Engagement Layer."]},"step2_rejection":{"type":"inline","notes":["Real S/4HANA reversal reason codes — the rejection is structured, auditable, and supports an optional comment.","The Supervisor adds a suggested price in the comment field — Joule will read it and surface it for the analyst in the next step."]},"step2_switch":{"type":"inline","notes":["The analyst receives the rejection with the suggested price already highlighted."]},"step3_context":{"type":"inline","notes":["Joule has already read the Supervisor's comment and extracted the suggested price — the analyst only needs to confirm it."]},"step3_recreate":{"type":"inline","notes":["Joule voids the original invoice, recreates the full document chain at the corrected price, and resubmits — all in one click.","The ProcessFlow shows the complete audit trail: rejected invoice, voided invoice, and new corrected invoice pending approval."]},"step4_confirm":{"type":"inline","notes":["Joule cannot post without the Supervisor's explicit confirmation — Human-in-the-Loop is built into the process.","For a transaction of this financial significance, this approval step is a compliance requirement."]},"step4_post":{"type":"inline","notes":["The invoice is posted to S/4HANA and the accounting document is generated — the financial record is now official."]},"step5_final":{"type":"inline","notes":["The analyst's view tells the complete story — from a single BOL to a fully posted invoice, with every step of the journey visible and auditable in the ProcessFlow."]},"step5_closing":{"type":"block","label":"Closing","notes":["From a raw Bill of Lading to recognized revenue — with a rejection and correction cycle in between, all traceable in one view.","Multiple S/4HANA transactions, email coordination, and manual status tracking are replaced by a single conversation."]},"a1_start":{"type":"inline","notes":["This is a different agent interaction — the analyst initiates an ad-hoc conversation with Joule, not triggered by the Lift Monitoring Agent. The analyst has identified a price issue on a posted invoice and is taking action."]},"a2_liftlist":{"type":"inline","notes":["Rather than typing a lift number from memory, the analyst asks Joule for lifts by operator. Joule returns the available lifts for that operator — typically 1 to 3 per month. The analyst selects the relevant one."]},"a2_loaded":{"type":"inline","notes":["Joule retrieves the posted invoice and surfaces the full document chain — no search screen, no transaction code."]},"a2_rule":{"type":"inline","notes":["Joule enforces the S/4HANA business rule: a posted invoice can only be amended via credit/debit memo — vessel changes are not permitted at this stage."]},"a3_price":{"type":"inline","notes":["The analyst provides the corrected price — Joule immediately calculates the amendment value showing the original price, amended price, and the financial delta with the full calculation."]},"a3_delta":{"type":"inline","notes":["The amendment value is displayed as a delta — not just the new total. This is what matters for approval: the financial impact of the change, not the absolute number."]},"a3_process":{"type":"inline","notes":["Joule selects the correct S/4HANA amendment process — Credit/Debit Memo Request followed by a Debit Memo Document. No procedural knowledge is required from the analyst."]},"a4_created":{"type":"inline","notes":["The document chain updates in real time — all document IDs are linked to their S/4HANA objects.","The Supervisor is notified automatically. The analyst's work is done."]},"a5_approve":{"type":"inline","notes":["One click posts the Debit Memo to S/4HANA. The AI Agent prepares, the Supervisor authorises — Human-in-the-Loop."]},"a6_closing":{"type":"block","label":"Closing","notes":["The price amendment is settled in S/4HANA — original invoice, memo request, and memo document all posted and traceable.","Two flows, two different business scenarios, one Agentic AI workspace. The Lift Monitoring Agent and Joule handle the process, Human-in-the-Loop owns the decisions."]}};
+
+  renderNotes(DEMO_NOTES);
+
+  function renderNotes(notes) {
+    document.querySelectorAll('[data-note]').forEach(el => {
+      const key = el.getAttribute('data-note');
+      const note = notes[key];
+      if (!note) return;
+      const isBlock = el.classList.contains('speaker-notes');
+      const label = note.label || 'Speaker Notes';
+      const items = note.notes.map(n => `<li>${n}</li>`).join('');
+      if (isBlock) {
+        el.innerHTML = `<div class="notes-label">${label}</div><ul>${items}</ul>`;
+      } else {
+        el.innerHTML = `<ul>${items}</ul>`;
+      }
+    });
+  }
+
+  function copyText(btn, text) {
+    navigator.clipboard.writeText(text).then(() => {
+      btn.classList.add('copied');
+      const orig = btn.innerHTML;
+      btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>';
+      setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('copied'); }, 1500);
+    });
+  }
+  const links = document.querySelectorAll('#toc a');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const m = document.querySelector(`#toc a[href="#${e.target.id}"]`);
+        if (m) m.classList.add('active');
+      }
+    });
+  }, { threshold: 0.3 });
+  document.querySelectorAll('[id]').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
